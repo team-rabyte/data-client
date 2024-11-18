@@ -17,10 +17,11 @@ assert config['host'] is not None
 assert config['path_to_save'] is not None
 
 
-def flush_to_file(data):
+def flush_to_file(data, use_json: bool = True):
     global config, columns
 
     data = data.decode()
+
     if type(data) is not str:
         logging.error(
             "Provided data is not string type. type = {}".format(type(data)))
@@ -33,43 +34,45 @@ def flush_to_file(data):
             "Error while loading string to json: {}\ndata={}".format(e, data))
         return
 
-    write_cols = False
-    # First run
-    if columns is None and os.path.isfile(config['path_to_save']):
-        f = open(config['path_to_save'], 'r')
-        line = f.readline()
-        # CSV file with columns descriptor
-        columns = line.split(',')
-        logging.warn(
-            "File already exists. Using columns found in the file: {}",
-            columns)
-        write_cols = True
-    elif columns is None:
-        columns = [c for c in data]
-        write_cols = True
+    if not use_json:
+        write_cols = False
+        # First run
+        if columns is None and os.path.isfile(config['path_to_save']):
+            f = open(config['path_to_save'], 'r')
+            line = f.readline()
+            # CSV file with columns descriptor
+            columns = line.split(',')
+            logging.warn(
+                "File already exists. Using columns found in the file: {}",
+                columns)
+            write_cols = True
+        elif columns is None:
+            columns = [c for c in data]
+            write_cols = True
 
-    if write_cols:
-        with open(config['path_to_save'], 'a') as f:
-            f.write(','.join(['timestamp'] + columns) + '\n')
+        if write_cols:
+            with open(config['path_to_save'], 'a') as f:
+                f.write(','.join(['timestamp'] + columns) + '\n')
 
-    # Make sure each key is in columns
-    for key in data:
-        if key not in columns:
-            logging.warn("{} column doesn't exist".format(key))
+        # Make sure each key is in columns
+        for key in data:
+            if key not in columns:
+                logging.warn("{} column doesn't exist".format(key))
 
-    temp = []
-    for c in columns:
-        val = data.get(c, '')
-        if val == '':
-            logging.warn("{} not found in sent data".format(c))
-        temp.append(val)
-    temp = [time.time()] + temp
-    temp = [str(x) for x in temp]
+        temp = []
+        for c in columns:
+            val = data.get(c, '')
+            if val == '':
+                logging.warn("{} not found in sent data".format(c))
+            temp.append(val)
+        temp = [time.time()] + temp
+        temp = [str(x) for x in temp]
 
     with open(config['path_to_save'], 'a') as f:
-        f.write(','.join(temp) + '\n')
-
-    logging.info("Succesfully wrote to file!")
+        if use_json:
+            f.write(json.dumps(data))
+        else:
+            f.write(','.join(temp) + '\n')
 
 
 try:
