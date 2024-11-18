@@ -1,5 +1,5 @@
 {
-    "host": "192.168.21.132",
+    "host": "172.20.10.10",
     "port": 5000,
     "path_to_save": "measurements.txt"
 }

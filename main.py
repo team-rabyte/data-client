@@ -33,6 +33,7 @@ def flush_to_file(data):
             "Error while loading string to json: {}\ndata={}".format(e, data))
         return
 
+    write_cols = False
     # First run
     if columns is None and os.path.isfile(config['path_to_save']):
         f = open(config['path_to_save'], 'r')
@@ -42,10 +43,14 @@ def flush_to_file(data):
         logging.warn(
             "File already exists. Using columns found in the file: {}",
             columns)
+        write_cols = True
     elif columns is None:
         columns = [c for c in data]
-    with open(config['path_to_save'], 'a') as f:
-        f.write(','.join(['timestamp'] + columns) + '\n')
+        write_cols = True
+
+    if write_cols:
+        with open(config['path_to_save'], 'a') as f:
+            f.write(','.join(['timestamp'] + columns) + '\n')
 
     # Make sure each key is in columns
     for key in data:
@@ -60,8 +65,6 @@ def flush_to_file(data):
         temp.append(val)
     temp = [time.time()] + temp
     temp = [str(x) for x in temp]
-
-    print("To save = ", temp)
 
     with open(config['path_to_save'], 'a') as f:
         f.write(','.join(temp) + '\n')
