@@ -42,7 +42,7 @@ def flush_to_file(data):
         logging.warn(
             "File already exists. Using columns found in the file: {}",
             columns)
-    else:
+    elif columns is None:
         columns = [c for c in data]
     with open(config['path_to_save'], 'a') as f:
         f.write(','.join(['timestamp'] + columns) + '\n')
