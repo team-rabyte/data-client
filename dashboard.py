@@ -4,6 +4,7 @@ from dash.dependencies import Input, Output, State
 import pandas as pd
 import os
 import json
+import time
 
 # Paths to the telemetry and command text files
 FILE_PATH = os.path.join(os.path.dirname(__file__), "measurements.txt")
@@ -15,6 +16,7 @@ trajectory_data = {
     "y": [],
     "z": []
 }
+
 
 # Initialize Dash app
 app = dash.Dash(__name__)
@@ -62,25 +64,62 @@ app.layout = html.Div([
     ]),
     html.Div([
         html.H2("Send Commands to Drone"),
+        # Flight Controls
         html.Div([
-            html.Label("Roll:"),
-            dcc.Input(id="roll-input", type="number", placeholder="Enter Roll", step=1),
-        ], style={"marginBottom": "10px"}),
+            html.H3("Flight Controls", style={"color": "#2196F3"}),
+            html.Div([
+                html.Label("Roll:"),
+                dcc.Input(id="roll-input", type="number", value=1500, placeholder="Enter Roll (1000-2000)", 
+                         min=1000, max=2000, step=1),
+            ], style={"marginBottom": "10px"}),
+            html.Div([
+                html.Label("Pitch:"),
+                dcc.Input(id="pitch-input", type="number", value=1500, placeholder="Enter Pitch (1000-2000)", 
+                         min=1000, max=2000, step=1),
+            ], style={"marginBottom": "10px"}),
+            html.Div([
+                html.Label("Throttle:"),
+                dcc.Input(id="throttle-input", type="number", value=1000, placeholder="Enter Throttle (1000-2000)", 
+                         min=1000, max=2000, step=1),
+            ], style={"marginBottom": "10px"}),
+            html.Div([
+                html.Label("Yaw:"),
+                dcc.Input(id="yaw-input", type="number", value=1500, placeholder="Enter Yaw (1000-2000)", 
+                         min=1000, max=2000, step=1),
+            ], style={"marginBottom": "20px"}),
+        ]),
+        
+        # PID Controls
         html.Div([
-            html.Label("Pitch:"),
-            dcc.Input(id="pitch-input", type="number", placeholder="Enter Pitch", step=1),
-        ], style={"marginBottom": "10px"}),
-        html.Div([
-            html.Label("Throttle:"),
-            dcc.Input(id="throttle-input", type="number", placeholder="Enter Throttle", step=1),
-        ], style={"marginBottom": "10px"}),
-        html.Div([
-            html.Label("Yaw:"),
-            dcc.Input(id="yaw-input", type="number", placeholder="Enter Yaw", step=1),
-        ], style={"marginBottom": "10px"}),
-        html.Button("Send Command", id="send-button"),
+            html.H3("PID Values", style={"color": "#4CAF50"}),
+            html.Div([
+                html.Label("PID X:"),
+                dcc.Input(id="pid-x-input", type="number", value=0, placeholder="Enter PID X", step=0.1),
+            ], style={"marginBottom": "10px"}),
+            html.Div([
+                html.Label("PID Y:"),
+                dcc.Input(id="pid-y-input", type="number", value=0, placeholder="Enter PID Y", step=0.1),
+            ], style={"marginBottom": "10px"}),
+            html.Div([
+                html.Label("PID Z:"),
+                dcc.Input(id="pid-z-input", type="number", value=0, placeholder="Enter PID Z", step=0.1),
+            ], style={"marginBottom": "10px"}),
+            html.Div([
+                html.Label("PID Yaw:"),
+                dcc.Input(id="pid-yaw-input", type="number", value=0, placeholder="Enter PID Yaw", step=0.1),
+            ], style={"marginBottom": "20px"}),
+        ]),
+        
+        html.Button("Send Command", id="send-button", 
+                   style={"backgroundColor": "#2196F3", "color": "white", "padding": "10px 20px"}),
         html.Div(id="command-status", style={"marginTop": "10px"}),
-    ], style={"marginTop": "20px"}),
+        
+        # Command History
+        html.Div([
+            html.H3("Command History"),
+            html.Pre(id="command-history", style={"maxHeight": "200px", "overflowY": "scroll"}),
+        ], style={"marginTop": "20px"}),
+    ], style={"marginTop": "20px", "padding": "20px", "border": "1px solid #ddd", "borderRadius": "5px"}),
 ])
 
 # Callback to update graphs and live telemetry text
@@ -211,37 +250,67 @@ def update_dashboard(n):
     except Exception as e:
         return {}, {}, {}, {}, f"Error processing telemetry data: {e}"
 
-# Callback to handle command submission
+def load_commands():
+    """Load existing commands from file"""
+    try:
+        if os.path.exists(COMMAND_FILE_PATH) and os.path.getsize(COMMAND_FILE_PATH) > 0:
+            with open(COMMAND_FILE_PATH, 'r') as f:
+                return json.load(f)
+    except Exception:
+        pass
+    return []
+
+# Modify the handle_command callback
 @app.callback(
-    Output("command-status", "children"),
+    [Output("command-status", "children"),
+     Output("command-history", "children")],
     [Input("send-button", "n_clicks")],
     [
         State("roll-input", "value"),
         State("pitch-input", "value"),
         State("throttle-input", "value"),
         State("yaw-input", "value"),
+        State("pid-x-input", "value"),
+        State("pid-y-input", "value"),
+        State("pid-z-input", "value"),
+        State("pid-yaw-input", "value"),
     ]
 )
-def handle_command(n_clicks, roll, pitch, throttle, yaw):
+def handle_command(n_clicks, roll, pitch, throttle, yaw, pid_x, pid_y, pid_z, pid_yaw):
     if n_clicks is None:
-        return ""
+        commands = load_commands()
+        return "", json.dumps(commands, indent=2)
 
     # Create a command dictionary
-    command = {
-        "roll": roll or 0,
-        "pitch": pitch or 0,
-        "throttle": throttle or 0,
-        "yaw": yaw or 0
+    new_command = {
+        "roll": float(roll) if roll is not None else 1500.0,
+        "pitch": float(pitch) if pitch is not None else 1500.0,
+        "throttle": float(throttle) if throttle is not None else 1000.0,
+        "yaw": float(yaw) if yaw is not None else 1500.0,
+        "pid_x": float(pid_x) if pid_x is not None else 0.0,
+        "pid_y": float(pid_y) if pid_y is not None else 0.0,
+        "pid_z": float(pid_z) if pid_z is not None else 0.0,
+        "pid_yaw": float(pid_yaw) if pid_yaw is not None else 0.0
     }
 
-    # Write the command to the text file
     try:
+        # Load existing commands
+        commands = load_commands()
+        
+        # Append new command
+        commands.append(new_command)
+        
+        # Keep only last 100 commands to prevent file from growing too large
+        commands = commands[-100:]
+        
+        # Write all commands to the text file
         with open(COMMAND_FILE_PATH, "w") as f:
-            f.write(json.dumps(command))
-        return "Command sent successfully!"
+            json.dump(commands, f, indent=2)
+            
+        # Update command history display
+        return f"Command sent successfully! (Total commands: {len(commands)})", json.dumps(commands, indent=2)
     except Exception as e:
-        return f"Error sending command: {e}"
-
+        return f"Error sending command: {e}", ""
 
 # Run the Dash app
 if __name__ == "__main__":
