@@ -276,22 +276,35 @@ def load_commands():
         State("pid-yaw-input", "value"),
     ]
 )
-def handle_command(n_clicks, roll, pitch, throttle, yaw, pid_x, pid_y, pid_z, pid_yaw):
+def handle_command(n_clicks, roll_p, pitch_p, throttle_p, yaw_p, roll_i, pitch_i, throttle_i, yaw_i, roll_d, pitch_d, throttle_d, yaw_d):
     if n_clicks is None:
         commands = load_commands()
         return "", json.dumps(commands, indent=2)
 
     # Create a command dictionary
     new_command = {
-        "roll": float(roll) if roll is not None else 1500.0,
-        "pitch": float(pitch) if pitch is not None else 1500.0,
-        "throttle": float(throttle) if throttle is not None else 1000.0,
-        "yaw": float(yaw) if yaw is not None else 1500.0,
-        "pid_x": float(pid_x) if pid_x is not None else 0.0,
-        "pid_y": float(pid_y) if pid_y is not None else 0.0,
-        "pid_z": float(pid_z) if pid_z is not None else 0.0,
-        "pid_yaw": float(pid_yaw) if pid_yaw is not None else 0.0
+        "pid_values": {
+            "P": {
+                "roll": float(roll_p) if 'roll_p' else 0.0,
+                "pitch": float(pitch_p) if 'pitch_p' else 0.0,
+                "throttle": float(throttle_p) if 'throttle_p' else 0.0,
+                "yaw": float(yaw_p) if 'yaw_p' else 0.0,
+            },
+            "I": {
+                "roll": float('roll_i') if 'roll_i' else 0.0,
+                "pitch": float('pitch_i') if 'pitch_i' else 0.0,
+                "throttle": float('throttle_i') if 'throttle_i' else 0.0,
+                "yaw": float('yaw_i') if 'yaw_i' else 0.0,
+            },
+            "D": {
+                "roll": float('roll_d') if 'roll_d' else 0.0,
+                "pitch": float('pitch_d') if 'pitch_d' else 0.0,
+                "throttle": float('throttle_d') if 'throttle_d' else 0.0,
+                "yaw": float('yaw_d') if 'yaw_d' else 0.0,
+            },
+        }
     }
+
 
     try:
         # Load existing commands

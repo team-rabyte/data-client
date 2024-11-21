@@ -50,15 +50,28 @@ class CommandHandler(FileSystemEventHandler):
             if self.last_sent_command != latest_command:
                 # Send the complete command including PID values
                 command_to_send = {
-                    "roll": latest_command["roll"],
-                    "pitch": latest_command["pitch"],
-                    "throttle": latest_command["throttle"],
-                    "yaw": latest_command["yaw"],
-                    "pid_x": latest_command["pid_x"],
-                    "pid_y": latest_command["pid_y"],
-                    "pid_z": latest_command["pid_z"],
-                    "pid_yaw": latest_command["pid_yaw"]
+                    "pid_values": {
+                        "P": {
+                            "roll": latest_command["roll"]["p"],
+                            "pitch": latest_command["pitch"]["p"],
+                            "throttle": latest_command["throttle"]["p"],
+                            "yaw": latest_command["yaw"]["p"],
+                        },
+                        "I": {
+                            "roll": latest_command["roll"]["i"],
+                            "pitch": latest_command["pitch"]["i"],
+                            "throttle": latest_command["throttle"]["i"],
+                            "yaw": latest_command["yaw"]["i"],
+                        },
+                        "D": {
+                            "roll": latest_command["roll"]["d"],
+                            "pitch": latest_command["pitch"]["d"],
+                            "throttle": latest_command["throttle"]["d"],
+                            "yaw": latest_command["yaw"]["d"],
+                        },
+                    }
                 }
+
                 
                 # Send the command
                 command_bytes = json.dumps(command_to_send).encode()
