@@ -15,6 +15,7 @@ columns = None
 
 assert config['host'] is not None
 assert config['path_to_save'] is not None
+print(config)
 
 
 def flush_to_file(data, use_json: bool = True):
@@ -29,6 +30,7 @@ def flush_to_file(data, use_json: bool = True):
 
     try:
         data = dict(json.loads(data))
+        print(data)
     except Exception as e:
         logging.error(
             "Error while loading string to json: {}\ndata={}".format(e, data))
