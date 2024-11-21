@@ -285,22 +285,22 @@ def handle_command(n_clicks, roll_p, pitch_p, throttle_p, yaw_p, roll_i, pitch_i
     new_command = {
         "pid_values": {
             "P": {
-                "roll": float(roll_p) if 'roll_p' else 0.0,
-                "pitch": float(pitch_p) if 'pitch_p' else 0.0,
-                "throttle": float(throttle_p) if 'throttle_p' else 0.0,
-                "yaw": float(yaw_p) if 'yaw_p' else 0.0,
+                "roll": float(roll_p) if roll_p else 0.0,
+                "pitch": float(pitch_p) if pitch_p else 0.0,
+                "throttle": float(throttle_p) if throttle_p else 0.0,
+                "yaw": float(yaw_p) if yaw_p else 0.0,
             },
             "I": {
-                "roll": float('roll_i') if 'roll_i' else 0.0,
-                "pitch": float('pitch_i') if 'pitch_i' else 0.0,
-                "throttle": float('throttle_i') if 'throttle_i' else 0.0,
-                "yaw": float('yaw_i') if 'yaw_i' else 0.0,
+                "roll": float(roll_i) if roll_i else 0.0,
+                "pitch": float(pitch_i) if pitch_i else 0.0,
+                "throttle": float(throttle_i) if throttle_i else 0.0,
+                "yaw": float(yaw_i) if yaw_i else 0.0,
             },
             "D": {
-                "roll": float('roll_d') if 'roll_d' else 0.0,
-                "pitch": float('pitch_d') if 'pitch_d' else 0.0,
-                "throttle": float('throttle_d') if 'throttle_d' else 0.0,
-                "yaw": float('yaw_d') if 'yaw_d' else 0.0,
+                "roll": float(roll_d) if roll_d else 0.0,
+                "pitch": float(pitch_d) if pitch_d else 0.0,
+                "throttle": float(throttle_d) if throttle_d else 0.0,
+                "yaw": float(yaw_d) if yaw_d else 0.0,
             },
         }
     }
