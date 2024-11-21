@@ -177,7 +177,7 @@ def update_dashboard(n):
             "layout": {
                 "title": "RC Commands",
                 "xaxis": {"title": "Control"},
-                "yaxis": {"title": "Value"}
+                "yaxis": {"title": "Value", "range": [800, 2200]}  # Locked range
             }
         }
 
@@ -191,7 +191,7 @@ def update_dashboard(n):
             "layout": {
                 "title": "PID Outputs",
                 "xaxis": {"title": "Control"},
-                "yaxis": {"title": "Value"}
+                "yaxis": {"title": "Value", "range": [-100, 100]}  # Locked range
             }
         }
 
